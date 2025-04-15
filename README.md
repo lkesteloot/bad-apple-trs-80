@@ -14,3 +14,5 @@ python3 process_image.py | pbcopy
 and paste into the [My TRS-80 IDE](https://www.my-trs-80.com/ide/)
 webapp.
 
+![Animation](animation.mov)
+
