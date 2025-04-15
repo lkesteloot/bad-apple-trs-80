@@ -1,10 +1,28 @@
 
 from itertools import batched
 
+# Generate a TRS-80 assembly language program (including data) to play
+# the Bad Apple video.
+#
+# There are two approaches. One is "direct", which means that the generated
+# assembly directly modifies the screen. This is very fast but far too
+# space-inefficient.
+#
+# The other is "indirect", which means we have a program that decodes
+# run-length-encoded data. It's about 2x as fast as we need, and encodes
+# each frame in about 100 bytes.
+#
+# To use this, run (on a Mac):
+#
+#     python3 process_image.py | pbcopy
+#
+# and paste into https://www.my-trs-80.com/ide/
+
 INDIRECT_ASM_CODE = """
         .org 4000h
 
 main
+        ; Pointer into the RLE data.
         ld ix,frames
 
 next_frame
@@ -76,6 +94,7 @@ end_of_frame
 
 frames"""
 
+# Load the PGM file to a 2D array of integers.
 def load_pgm(pathname):
     lines = open(pathname).readlines()
     assert lines[0] == "P2\n"
@@ -84,6 +103,7 @@ def load_pgm(pathname):
     image = [[p >= 186 for p in [int(p) for p in row.split()]] for row in lines[3:]]
     return image
 
+# Convert a 2D array of (pixel brightness) integers to 1024 TRS-80 graphics characters.
 def convert_to_chars(image):
     chars = []
 
@@ -99,6 +119,7 @@ def convert_to_chars(image):
 
     return chars
 
+# Run-length encode characters into a list of (char, count) pairs.
 def run_length_encode(chars):
     # (char, count) pairs.
     rle = []
@@ -110,6 +131,7 @@ def run_length_encode(chars):
 
     return rle
 
+# Generate direct assembly (draws directly to screen, not using data) for the RLE data.
 def rle_to_direct_asm(rle):
     asm = []
     addr = 15360
@@ -126,6 +148,7 @@ def rle_to_direct_asm(rle):
             asm.append("        ldir")
     return asm
 
+# Generate indirect assembly (uses RLE data to draw to screen) for the RLE data.
 def rle_to_indirect_asm(rle):
     # Top two bits of byte:
     # 00: Lower 6 bits are number of 128 bytes.
@@ -133,6 +156,9 @@ def rle_to_indirect_asm(rle):
     # 10: Byte is written once.
     # 11: Lower 6 bits are number of 191 bytes.
     # All-zero byte means end of frame. Two all-zero bytes means end of sequence.
+
+    # Convert the RLE data to a very compact form that assumes that most
+    # runs are of blank (128) or full (191), with few runs of other characters.
     data = []
     for char, count in rle:
         while count > 0:
@@ -151,6 +177,7 @@ def rle_to_indirect_asm(rle):
     # End of frame.
     data.append(0)
 
+    # Convert to .byte assembly lines.
     asm = []
     for line in batched(data, 8):
         asm.append("        .byte " + ",".join("0x%02x" % b for b in line))
@@ -164,10 +191,7 @@ def main():
     indirect_asm = []
     indirect_asm.extend(INDIRECT_ASM_CODE.split("\n"))
 
-    begin = 230
     begin = 35
-    # begin = 600 # Drop apple.
-    end = begin + 60
     end = begin + 490
     for i in range(begin, end):
         image = load_pgm("converted_images/bad_apple_%03d.pgm" % i)
@@ -180,8 +204,10 @@ def main():
     direct_asm.append("        jp $")
 
     if False:
+        # Dump direct assembly.
         print("\n".join(direct_asm) + "\n")
     else:
+        # Dump indirect assembly.
         indirect_asm.append("        ; End of frames")
         indirect_asm.append("        .byte 0x00")
         indirect_asm.append("")

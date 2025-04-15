@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Convert full-size images (not in git) to 128x48 images.
+
 INPUT_DIR="./image_sequence"
 OUTPUT_DIR="./converted_images"
 
