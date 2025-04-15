@@ -15,3 +15,7 @@ and paste into the [My TRS-80 IDE](https://www.my-trs-80.com/ide/)
 webapp.
 
 https://github.com/lkesteloot/bad-apple-trs-80/raw/refs/heads/master/animation.mov
+
+
+https://github.com/user-attachments/assets/4e215692-1b83-45e4-a7b1-3a9ef7a142d4
+
