@@ -1,8 +1,9 @@
 # Bad Apple TRS-80
 
-This repo takes frames from the famous Bad Apple music video
-and converts them to assembly language code for the TRS-80
-Model III that will show the video. Currently only 490 frames
+This repo converts the famous
+[Bad Apple music video](https://www.youtube.com/watch?v=FtutLA63Cp8)
+to an assembly language program for the TRS-80
+Model III to show the video. Currently only 490 frames
 will fit in 48k of RAM (about 100 bytes each). There's no audio.
 
 To use this, run (on a Mac):
